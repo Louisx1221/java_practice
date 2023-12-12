@@ -1,5 +1,4 @@
 public class OrbitPropagation {
-    double[] coe;
     static double MU = 398600.4415, RE = 6378.1365, J2 = 1.082627e-3;
 
     public static void main(String[] args) {
