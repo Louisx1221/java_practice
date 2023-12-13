@@ -1,16 +1,7 @@
 public class OrbitPropagation {
     static double MU = 398600.4415, RE = 6378.1365, J2 = 1.082627e-3;
-
     public static void main(String[] args) {
-        /* 1.时空系统 */
-        /* 1.1 UTC时间 */
-        double t0 = 497894421.5;
-        double jd0 = 2454832.5 + t0 / 86400.0;
-        Utc utc0 = jd2utc(jd0);
-        System.out.printf("%d\t%d\t%d\t%d\t%d\t%.2f\n", utc0.year, utc0.month, utc0.day, utc0.hour, utc0.minute, utc0.second);
-        // 2024    10      11      16      0       21.50
-
-        /* 1.2 轨道六根数 */
+        /* 1. 轨道六根数 */
         double[] r0 = {-6121.222491222, -2258.448349219, 2189.751497198};
         double[] v0 = {-2.776819144, 0.596247651, -7.145828963};
         double[] coe0 = eci2coe(r0, v0);
@@ -24,11 +15,6 @@ public class OrbitPropagation {
         /* 2. 轨道递推 */
         double dt = 600;
         double[] coe = new double[6];
-
-        double jd = utc2jd(utc0) + dt / 86400.0;
-        Utc utc = jd2utc(jd);
-        System.out.printf("%d\t%d\t%d\t%d\t%d\t%.2f\n", utc.year, utc.month, utc.day, utc.hour, utc.minute, utc.second);
-
         coe = orb_prop_2body(coe0, dt);
         for (int i = 0; i < 2; i++)
             System.out.printf("%.6f\t", coe[i]);
@@ -45,6 +31,7 @@ public class OrbitPropagation {
         System.out.print("\n");
         // STK: 7029.280916 0.020921 100.805 16.588 160.903 38.448
 
+        /* 3. ECI坐标系位置速度矢量 */
         double[] r = new double[3], v = new double[3];
         coe2eci(coe, r, v);
         for (int i = 0; i < 3; i++)
@@ -119,74 +106,6 @@ public class OrbitPropagation {
         }
         return E;
     }
-
-    public static class Utc {
-        int year, month, day, hour, minute;
-        double second;
-        Utc(int year, int month, int day, int hour, int minute, double second) {
-            this.year = year;
-            this.month = month;
-            this.day = day;
-            this.hour = hour;
-            this.minute = minute;
-            this.second = second;
-        }
-    }
-
-    public static Utc jd2utc(double jd) {
-        /* 儒略日转UTC时间 */
-        double z, a, b, c, d, e, fday, alpha;
-        int year, month, day, hour, minute;
-        double second;
-
-        z = Math.floor(jd + 0.5);
-        fday = jd + 0.5 - z;
-
-        if (fday < 0)
-        {
-        	fday += 1;
-        	z -= 1;
-        }
-
-        if (z < 2299161)
-            a = z;
-        else
-        {
-        	alpha = Math.floor((z - 1867216.25) / 36524.25);
-        	a = z + 1 + alpha - Math.floor(alpha / 4.0);
-        }
-
-        b = a + 1524.0;
-        c = Math.floor((b - 122.1) / 365.25);
-        d = Math.floor(365.25 * c);
-        e = Math.floor((b - d) / 30.6001);
-
-        day = (int)Math.floor(b - d - Math.floor(30.6001 * e) + fday);
-        hour = (int)Math.floor(fday * 24);
-        minute = (int)Math.floor((fday * 24 - hour) * 60);
-        second = ((fday * 24 - hour) * 60 - minute) * 60;
-
-        if (e < 14)
-            month = (int) (e - 1.0);
-        else
-            month = (int) (e - 13.0);
-
-        if (month > 2)
-            year = (int) (c - 4716.0);
-        else
-            year = (int) (c - 4715.0);
-
-        return new Utc(year, month, day, hour, minute, second);
-    }
-
-    public static double utc2jd(Utc utc) {
-        /* UTC时间转儒略日 */
-        double jd = 367.0 * utc.year
-                    - Math.floor((7 * (utc.year + Math.floor((utc.month + 9) / 12.0))) * 0.25)
-                    + Math.floor(275 * utc.month / 9) + utc.day + 1721013.5
-                    + ((utc.second / 60.0 + utc.minute) / 60.0 + utc.hour) / 24.0;
-        return jd;
-}
 
     public static double[] eci2coe(double r[], double v[]) {
         /* ECi位置速度转轨道六根数 */
