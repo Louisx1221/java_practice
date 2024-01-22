@@ -14,6 +14,10 @@ public class TimeSystem {
         Utc utc = jd2utc(jd);
         System.out.printf("%d\t%d\t%d\t%d\t%d\t%.2f\n", utc.year, utc.month, utc.day, utc.hour, utc.minute, utc.second);
         // 2024    10      11      16      10      21.50
+
+        Utc utcx = new Utc(2024, 1, 22, 10, 30, 0.);
+        double jdx = utc2jd(utcx);
+        System.err.println(jdx);
     }
 
     public static class Utc {
