@@ -31,7 +31,7 @@ public class EarthObservation {
     }
 
     public static double[] ecef2eci(double jd, double[] r_ecef) {
-        /* ECEF位置转 ECI */
+        /* ECEF位置转ECI */
         double[][] rot_mat = rotation_matrix(jd);
         rot_mat = matrix_transpose(rot_mat);
         double[] r_eci = matrix_times_vector(rot_mat, r_ecef);
@@ -83,38 +83,40 @@ public class EarthObservation {
     public static double[] eci2rtn(double[] r_eci, double[] v_eci, double[] vec_eci) {
         /* ECI向量转RTN(RSW) */
         double[] r_unit = unitize(r_eci);
-        double[] n_unit = cross(r_eci, v_eci);
-        n_unit = unitize(n_unit);
+        double[] n_unit = unitize(cross(r_eci, v_eci));
         double[] t_unit = cross(n_unit, r_unit);
-        double[][] rot_mat = horzcat(r_unit, t_unit, n_unit);
-        double[] vec_rtn = vector_times_matrix(vec_eci, rot_mat);
+        double[] vec_rtn = new double[3];
+        vec_rtn[0] = dot(vec_eci, r_unit);
+        vec_rtn[1] = dot(vec_eci, t_unit);
+        vec_rtn[2] = dot(vec_eci, n_unit);
         return vec_rtn;
     }
 
     public static double[] observe_angle(double jd, double[] r_eci, double[] v_eci, double[] lla)
     {
+        /* 对地观测欧拉角 */
         double[] r_ecef_tar = geod2ecef(lla);
         double[] r_eci_tar = ecef2eci(jd, r_ecef_tar);
         double[] dr_eci = new double[3];
         for (int i = 0; i < 3; i++)
-            dr_eci[i] = r_eci[i] - r_eci_tar[i];
+            dr_eci[i] = r_eci_tar[i] - r_eci[i];
         double[] dr_rtn = eci2rtn(r_eci, v_eci, dr_eci);
-        double[] dr_body = rtn2body(dr_rtn);
-        double[] obs_ang = eular_angle(dr_body);
+        double[] dr_vvlh = rtn2vvlh(dr_rtn);
+        double[] obs_ang = eular_angle(dr_vvlh);
         return obs_ang;
     }
 
-    public static double[] rtn2body(double[] vec_rtn) {
-        /* RTN坐标系转本体坐标系 */
-        double[] vec_body = {vec_rtn[1], vec_rtn[2], vec_rtn[0]};
-        return vec_body;
+    public static double[] rtn2vvlh(double[] vec_rtn) {
+        /* RTN向量转VVLH(轨道系/本体系) */
+        double[] vec_vvlh = {vec_rtn[1], -vec_rtn[2], -vec_rtn[0]};
+        return vec_vvlh;
     }
 
     public static double[] eular_angle(double[] vec) {
-        /* 欧拉角 */
+        /* 欧拉角(RYP/XYZ/123) */
         double[] ang = new double[3];
-        ang[0] = Math.asin(vec[1] / norm(vec)); /* roll */
-        ang[1] = -Math.atan2(vec[2], vec[0]) + Math.PI / 2; /* pitch */
+        ang[0] = -Math.asin(vec[1] / norm(vec)); /* roll */
+        ang[1] = Math.atan(vec[0] / vec[2]); /* pitch */
         return ang;
     }
 
@@ -123,14 +125,6 @@ public class EarthObservation {
         double[] vout = new double[3];
         for (int i = 0; i < 3; i++)
             vout[i] = mat[i][0] * vin[0] + mat[i][1] * vin[1] + mat[i][2] * vin[2];
-        return vout;
-    }
-
-    public static double[] vector_times_matrix(double[] vin, double[][] mat) {
-        /* 向量乘矩阵 */
-        double[] vout = new double[3];
-        for (int i = 0; i < 3; i++)
-            vout[i] = mat[0][i] * vin[0] + mat[1][i] * vin[1] + mat[2][i] * vin[2];
         return vout;
     }
 
@@ -174,17 +168,5 @@ public class EarthObservation {
         for (int i = 0; i < 3; i++)
             vout[i] = vin[i] / vm;
         return vout;
-    }
-
-    public static double[][] horzcat(double vec0[], double vec1[], double vec2[]) {
-        /* 串联矩阵 */
-        double[][] mat_out = new double[3][3];
-        for (int i = 0; i < 3; i++)
-        {
-            mat_out[i][0] = vec0[i];
-            mat_out[i][1] = vec1[i];
-            mat_out[i][2] = vec2[i];
-        }
-        return mat_out;
     }
 }
