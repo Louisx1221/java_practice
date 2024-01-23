@@ -113,15 +113,15 @@ public class OrbitPropagation {
         double sma, ecc, inc, raan, argper, tanom, p, q, const1, h, xk, tlon;
         int i;
 
-        h_ = cross(r, v); /* angular momentum vector */
-        ecc_ = cross(v, h_); /* eccentricity vector */
-        r_ = unitize(r);
+        h_ = LinearAlgebra.cross(r, v); /* angular momentum vector */
+        ecc_ = LinearAlgebra.cross(v, h_); /* eccentricity vector */
+        r_ = LinearAlgebra.unitize(r);
         for (i = 0; i < 3; i++)
             ecc_[i] = ecc_[i] / MU - r_[i];
 
-        sma = 1 / (2 / norm(r) - dot(v, v) / MU); /* semi-major axis */
+        sma = 1 / (2 / LinearAlgebra.norm(r) - LinearAlgebra.dot(v, v) / MU); /* semi-major axis */
 
-        h_ = unitize(h_);
+        h_ = LinearAlgebra.unitize(h_);
         p = h_[0] / (1 + h_[2]);
         q = -h_[1] / (1 + h_[2]);
 
@@ -132,14 +132,14 @@ public class OrbitPropagation {
         g_[0] = const1 * 2 * p * q;
         g_[1] = const1 * (1 + p * p - q * q);
         g_[2] = const1 * 2 * q;
-        h = dot(ecc_, g_); /* angular momentum*/
-        xk = dot(ecc_, f_);
+        h = LinearAlgebra.dot(ecc_, g_); /* angular momentum*/
+        xk = LinearAlgebra.dot(ecc_, f_);
 
         ecc = Math.sqrt(h * h + xk * xk); /* eccentricity */
         ecc = Math.clamp(ecc, 0, 0.97);
 
         inc = 2 * Math.atan(Math.sqrt(p * p + q * q)); /* inclination */
-        tlon = Math.atan2(dot(r, g_), dot(r, f_)); /* true longitude */
+        tlon = Math.atan2(LinearAlgebra.dot(r, g_), LinearAlgebra.dot(r, f_)); /* true longitude */
 
         /* check for equatorial orbit*/
         if (inc > 0.00000001)
@@ -201,36 +201,5 @@ public class OrbitPropagation {
         v[0] = -c4 * (c6 * craan + c5 * sraan * cinc);
         v[1] = -c4 * (c6 * sraan - c5 * craan * cinc);
         v[2] = c4 * c5 * sinc;
-    }
-
-    public static double[] cross(double vin1[], double vin2[]) {
-        /* 向量叉乘 */
-        double[] vout = new double[3];
-        vout[0] = vin1[1] * vin2[2] - vin1[2] * vin2[1];
-        vout[1] = vin1[2] * vin2[0] - vin1[0] * vin2[2];
-        vout[2] = vin1[0] * vin2[1] - vin1[1] * vin2[0];
-        return vout;
-    }
-
-    public static double dot(double vin1[], double vin2[]) {
-        /* 向量点乘 */
-        double out = 0;
-        for (int i = 0; i < 3; i++)
-            out += vin1[i] * vin2[i];
-        return out;
-    }
-
-    public static double norm(double v[]) {
-        /* 向量的模 */
-        return Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-    }
-
-    public static double[] unitize(double vin[]) {
-        /* 向量单位化 */
-        double[] vout = new double[3];
-        double vm = norm(vin);
-        for (int i = 0; i < 3; i++)
-            vout[i] = vin[i] / vm;
-        return vout;
     }
 }

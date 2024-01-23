@@ -26,15 +26,15 @@ public class EarthObservation {
     public static double[] eci2ecef(double jd, double[] r_eci) {
         /* ECI位置转ECEF */
         double[][] rot_mat = rotation_matrix(jd);
-        double[] r_ecef = matrix_times_vector(rot_mat, r_eci);
+        double[] r_ecef = LinearAlgebra.matrix_times_vector(rot_mat, r_eci);
         return r_ecef;
     }
 
     public static double[] ecef2eci(double jd, double[] r_ecef) {
         /* ECEF位置转ECI */
         double[][] rot_mat = rotation_matrix(jd);
-        rot_mat = matrix_transpose(rot_mat);
-        double[] r_eci = matrix_times_vector(rot_mat, r_ecef);
+        rot_mat = LinearAlgebra.matrix_transpose(rot_mat);
+        double[] r_eci = LinearAlgebra.matrix_times_vector(rot_mat, r_ecef);
         return r_eci;
     }
 
@@ -82,13 +82,13 @@ public class EarthObservation {
 
     public static double[] eci2rtn(double[] r_eci, double[] v_eci, double[] vec_eci) {
         /* ECI向量转RTN(RSW) */
-        double[] r_unit = unitize(r_eci);
-        double[] n_unit = unitize(cross(r_eci, v_eci));
-        double[] t_unit = cross(n_unit, r_unit);
+        double[] r_unit = LinearAlgebra.unitize(r_eci);
+        double[] n_unit = LinearAlgebra.unitize(LinearAlgebra.cross(r_eci, v_eci));
+        double[] t_unit = LinearAlgebra.cross(n_unit, r_unit);
         double[] vec_rtn = new double[3];
-        vec_rtn[0] = dot(vec_eci, r_unit);
-        vec_rtn[1] = dot(vec_eci, t_unit);
-        vec_rtn[2] = dot(vec_eci, n_unit);
+        vec_rtn[0] = LinearAlgebra.dot(vec_eci, r_unit);
+        vec_rtn[1] = LinearAlgebra.dot(vec_eci, t_unit);
+        vec_rtn[2] = LinearAlgebra.dot(vec_eci, n_unit);
         return vec_rtn;
     }
 
@@ -115,58 +115,8 @@ public class EarthObservation {
     public static double[] eular_angle(double[] vec) {
         /* 欧拉角(RYP/XYZ/123) */
         double[] ang = new double[3];
-        ang[0] = -Math.asin(vec[1] / norm(vec)); /* roll */
+        ang[0] = -Math.asin(vec[1] / LinearAlgebra.norm(vec)); /* roll */
         ang[1] = Math.atan(vec[0] / vec[2]); /* pitch */
         return ang;
-    }
-
-    public static double[] matrix_times_vector(double[][] mat, double[] vin) {
-        /* 矩阵乘向量 */
-        double[] vout = new double[3];
-        for (int i = 0; i < 3; i++)
-            vout[i] = mat[i][0] * vin[0] + mat[i][1] * vin[1] + mat[i][2] * vin[2];
-        return vout;
-    }
-
-    public static double[][] matrix_transpose(double[][] mat_in){
-        /* 矩阵转置 */
-        double[][] mat_out = new double[3][3];
-        for (int i = 0; i < 3; i++)
-        {
-            for (int j = 0; j < 3; j++)
-                mat_out[i][j] = mat_in[j][i];
-        }
-        return mat_out;
-    }
-
-    public static double[] cross(double vin1[], double vin2[]) {
-        /* 向量叉乘 */
-        double[] vout = new double[3];
-        vout[0] = vin1[1] * vin2[2] - vin1[2] * vin2[1];
-        vout[1] = vin1[2] * vin2[0] - vin1[0] * vin2[2];
-        vout[2] = vin1[0] * vin2[1] - vin1[1] * vin2[0];
-        return vout;
-    }
-
-    public static double dot(double vin1[], double vin2[]) {
-        /* 向量点乘 */
-        double out = 0;
-        for (int i = 0; i < 3; i++)
-            out += vin1[i] * vin2[i];
-        return out;
-    }
-
-    public static double norm(double v[]) {
-        /* 向量的模 */
-        return Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-    }
-
-    public static double[] unitize(double vin[]) {
-        /* 向量单位化 */
-        double[] vout = new double[3];
-        double vm = norm(vin);
-        for (int i = 0; i < 3; i++)
-            vout[i] = vin[i] / vm;
-        return vout;
     }
 }
