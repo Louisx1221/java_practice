@@ -113,7 +113,7 @@ public class EarthObservation {
     }
 
     public static double[] eular_angle(double[] vec) {
-        /* 欧拉角(RYP/XYZ/123) */
+        /* 欧拉角(RPY/XYZ/123) */
         double[] ang = new double[3];
         ang[0] = -Math.asin(vec[1] / LinearAlgebra.norm(vec)); /* roll */
         ang[1] = Math.atan(vec[0] / vec[2]); /* pitch */
