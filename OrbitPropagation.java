@@ -88,8 +88,10 @@ public class OrbitPropagation {
         for (int i = 0; i < 5; i++)
             coe[i] = coe0[i];
         coe[3] += -1.5 * CJ2 * cosi * dt;
-        coe[4] += 0.75 * CJ2 * (5 * cosi * cosi - 1);
+        coe[4] += 0.75 * CJ2 * (5 * cosi * cosi - 1)* dt;
         coe[5] = f % Math.TAU;
+        for (int i = 3; i < 6; i++)
+            coe[i] += (coe[i] < 0) ? Math.TAU : 0;
         return coe;
     }
 
@@ -164,6 +166,8 @@ public class OrbitPropagation {
         }
 
         double[] coe = {sma, ecc, inc, raan, argper, tanom};
+        for (i = 3; i < 6; i++)
+            coe[i] += (coe[i] < 0) ? Math.TAU : 0;
         return coe;
     }
 
