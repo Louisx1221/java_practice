@@ -206,4 +206,20 @@ public class OrbitPropagation {
         v[1] = -c4 * (c6 * sraan - c5 * craan * cinc);
         v[2] = c4 * c5 * sinc;
     }
+
+    public static double coe_m2f(double M, double e)
+    {
+        /* 轨道六根数平近点角转真近点角(rad) */
+        double E = solve_kepler(M, e);
+        double f = 2 * Math.atan(Math.sqrt((1 + e) / (1 - e)) * Math.tan(E / 2));
+        return f;
+    }
+
+    public static double coe_f2m(double f, double e)
+    {
+        /* 轨道六根数真近点角转平近点角(rad) */
+        double E = Math.atan2(Math.sin(f) * Math.sqrt(1 - e * e), e + Math.cos(f));
+        double M = E - e * Math.sin(E);
+        return M;
+    }
 }
