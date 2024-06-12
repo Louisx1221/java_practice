@@ -182,6 +182,41 @@ public class OrbitPropagationRKF78 {
         return xout;
     }
 
+    public static double[][] orbitPropagation(double[] r0, double[] v0, double dt, double tspan, int model, boolean all) {
+        /**
+         * r0[3]    = ECI位置向量(km)
+         * v0[3]    = ECI速度向量(km/s)
+         * dt       = 递推时长(s)
+         * tspan    = 时间间隔(s)
+         * model    = 0(二体模型), 1(J2摄动模型)
+         * all      = true(输出全部结果), false(输出最后结果)
+         */
+
+        double[] x = {r0[0], r0[1], r0[2], v0[0], v0[1], v0[2]};
+        int N = (int)Math.floor(dt / tspan);
+        int len = all ? N + 1 : 1;
+        double[][] xout = new double[len][7];
+
+        for (int i = 0; i < N; i++)
+        {
+            if (all)
+            {
+                xout[i][0] = i * tspan;
+                for (int j = 0; j < 6; j++)
+                    xout[i][j + 1] = x[j];
+            }
+            if (model == 1)
+                x = RKF78(orbPropJ2Pert, x, 0, tspan, 1e-2, 6);
+            else
+                x = RKF78(orbPropTwoBody, x, 0, tspan, 1e-2, 6);
+        }
+        xout[len - 1][0] = N * tspan;
+        for (int j = 0; j < 6; j++)
+            xout[len - 1][j + 1] = x[j];
+
+        return xout;
+    }
+
     public static void main(String[] args) {
         // 初始轨道参数
         double[] r0 = {-6121.222491222, -2258.448349219, 2189.751497198};   // km
@@ -190,7 +225,8 @@ public class OrbitPropagationRKF78 {
         // 递推时长及时间间隔
         double dt = 6000, tspan = 1; // 递推时长, 时间间隔(s)
 
-        double[][] trv_mat = orbitPropagation(r0, v0, dt, tspan, 1);
+        // double[][] trv_mat = orbitPropagation(r0, v0, dt, tspan, 1);
+        double[][] trv_mat = orbitPropagation(r0, v0, dt, tspan, 1, false);
 
         int N = trv_mat.length - 1;
         double tf = trv_mat[N][0];
